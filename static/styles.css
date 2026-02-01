@@ -1,0 +1,261 @@
+/* Ensure html and body take full height using 100vh and have no margin or padding */
+html,
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Set body as a flex container with a column layout and a modern font */
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f4f8;
+}
+
+/* Style the header with center alignment, padding, and background color */
+.header {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  margin: 0 0 8px 0;
+  background: #333; ;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 28px;
+}
+
+/* Use flexbox to center suggestion buttons and add spacing */
+.suggestions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  flex-wrap: wrap;
+}
+
+/* Style suggestion buttons with vibrant color and padding */
+.suggestion-btn {
+  background: #19b0ec;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: 2px solid #19b0ec;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.suggestion-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Style chat container as a flex column, centered and responsive with no overflow */
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  background: white;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Style messages area with border, padding, and scrollable overflow */
+#messages {
+  flex: 1;
+  margin: 10px;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+/* Message wrapper for alignment */
+.message-wrapper {
+  display: flex;
+  margin-bottom: 16px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.message-wrapper.user {
+  justify-content: flex-end;
+}
+
+.message-wrapper.assistant {
+  justify-content: flex-start;
+}
+
+/* Individual message bubble */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 70%;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+/* Avatar styling */
+.avatar {
+  min-width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.message.user .avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.message.assistant .avatar {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* Message content bubble */
+.message-content {
+  padding: 12px 16px;
+  border-radius: 18px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message.user .message-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message.assistant .message-content {
+  background: white;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-bottom-left-radius: 4px;
+}
+
+/* Typing indicator animation */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #999;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Use flexbox for input container with spacing */
+.input-container {
+  display: flex;
+  gap: 8px;
+  margin: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Allow input field to grow and fill available space */
+.input-wrapper {
+  flex-grow: 1;
+}
+
+/* Style message input field with full width, padding, and border */
+#message-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 24px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+#message-input:focus {
+  border-color: #667eea;
+}
+
+/* Style all buttons with padding, color, and background */
+button {
+  padding: 10px 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Style new chat button with a specific background color */
+#new-chat-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+#new-chat-btn:hover {
+  box-shadow: 0 4px 12px rgba(56, 239, 125, 0.4);
+}

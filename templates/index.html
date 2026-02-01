@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Customer Service Chat</title>
+    <link rel="icon" href="{{ url_for('static', path='/favicon.ico') }}" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v=2" />
+  </head>
+  <body>
+    <div class="header">
+      <h1>Welcome to Iron Lady Customer Service</h1>
+    </div>
+    <div class="suggestions">
+      <button
+        class="suggestion-btn"
+        onclick="usePrompt('Can you tell me about Iron Lady?')"
+      >
+        About Iron Lady
+      </button>
+      <button
+        class="suggestion-btn"
+        onclick="usePrompt('What programs do you offer?')"
+      >
+        Our Programs
+      </button>
+      <button
+        class="suggestion-btn"
+        onclick="usePrompt('How do I contact Iron Lady with more questions?')"
+      >
+        Contact Iron Lady
+      </button>
+    </div>
+    <div id="chat-container">
+      <div id="messages"></div>
+      <div class="input-container">
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Type your message..."
+          />
+        </div>
+        <button onclick="sendMessage()">Send</button>
+        <button id="new-chat-btn" onclick="startNewChat()">New Chat</button>
+      </div>
+    </div>
+
+    <script>
+      const messagesContainer = document.getElementById("messages");
+      const messageInput = document.getElementById("message-input");
+      let currentChatId = null;
+      let currentUserId = null;
+
+      // Local storage keys
+      const STORAGE_KEY_CHAT_ID = "chatbot_chat_id";
+      const STORAGE_KEY_USER_ID = "chatbot_user_id";
+      const STORAGE_KEY_MESSAGES = "chatbot_messages";
+
+      // Load messages from local storage on page load
+      function loadMessagesFromStorage() {
+        const storedMessages = localStorage.getItem(STORAGE_KEY_MESSAGES);
+        if (storedMessages) {
+          const messages = JSON.parse(storedMessages);
+          messages.forEach((msg) => appendMessage(msg.role, msg.content, false));
+        }
+      }
+
+      // Save all messages to local storage
+      function saveMessagesToStorage() {
+        const messages = [];
+        const messageWrappers = messagesContainer.querySelectorAll(".message-wrapper:not(.loading-wrapper)");
+        messageWrappers.forEach((wrapper) => {
+          const messageDiv = wrapper.querySelector(".message");
+          const role = messageDiv.classList.contains("user") ? "user" : "assistant";
+          const content = messageDiv.querySelector(".message-content").textContent;
+          messages.push({ role, content });
+        });
+        localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
+      }
+
+      // Clear messages from local storage
+      function clearMessagesFromStorage() {
+        localStorage.removeItem(STORAGE_KEY_MESSAGES);
+      }
+
+      // Start a chat automatically when the page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        currentChatId = localStorage.getItem(STORAGE_KEY_CHAT_ID);
+        currentUserId = localStorage.getItem(STORAGE_KEY_USER_ID);
+
+        if (currentChatId && currentUserId) {
+          // Load existing chat
+          loadMessagesFromStorage();
+        } else {
+          // Start new chat
+          startNewChat();
+        }
+      });
+
+      function startNewChat() {
+        fetch("/api/create_chat", {
+          method: "POST",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            currentChatId = data.chat_id;
+            currentUserId = data.user_id;
+            // Store chat IDs in local storage
+            localStorage.setItem(STORAGE_KEY_CHAT_ID, currentChatId);
+            localStorage.setItem(STORAGE_KEY_USER_ID, currentUserId);
+            messagesContainer.innerHTML = "";
+            clearMessagesFromStorage();
+          })
+          .catch(() => {
+            alert("Error creating chat");
+          });
+      }
+
+      function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        appendMessage("user", message);
+        messageInput.value = "";
+
+        // Show loading indicator
+        const loadingId = showLoading();
+
+        // Send to server
+        fetch("/api/send_message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            chat_id: currentChatId,
+            message: message,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Remove loading indicator
+            removeLoading(loadingId);
+            // Add assistant message
+            appendMessage("assistant", data.message);
+        })
+          .catch(() => {
+            removeLoading(loadingId);
+            alert("Error sending message");
+          });
+      }
+
+      function usePrompt(prompt) {
+        messageInput.value = prompt;
+        sendMessage();
+      }
+
+      // Return HTML for avatars
+      function getAvatarSVG(role) {
+        if (role === "user") {
+          return `
+            <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="white" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM4 20c0-2.67 2.67-4 8-4s8 1.33 8 4v1H4v-1z" />
+            </svg>
+          `;
+        }
+        // assistant / AI (robot icon from static folder)
+        return `
+          <img src="{{ url_for('static', path='/robot.svg') }}" alt="AI" style="width: 22px; height: 22px; " />
+        `;
+      }
+
+      function appendMessage(role, content, shouldSave = true) {
+        const messageWrapper = document.createElement("div");
+        messageWrapper.className = `message-wrapper ${role}`;
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${role}`;
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.innerHTML = getAvatarSVG(role);
+        avatar.setAttribute("aria-label", role === "user" ? "You" : "AI");
+
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+        messageContent.textContent = content;
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        messageWrapper.appendChild(messageDiv);
+
+        messagesContainer.appendChild(messageWrapper);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Save messages to local storage
+        if (shouldSave) {
+          saveMessagesToStorage();
+        }
+      }
+
+      function showLoading() {
+        const loadingId = "loading-" + Date.now();
+        const messageWrapper = document.createElement("div");
+        messageWrapper.className = "message-wrapper assistant";
+        messageWrapper.id = loadingId;
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message assistant";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.innerHTML = getAvatarSVG("assistant");
+        avatar.setAttribute("aria-label", "AI");
+
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content loading";
+        messageContent.innerHTML = `
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        `;
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        messageWrapper.appendChild(messageDiv);
+
+        messagesContainer.appendChild(messageWrapper);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        return loadingId;
+      }
+
+      function removeLoading(loadingId) {
+        const loadingElement = document.getElementById(loadingId);
+        if (loadingElement) {
+          loadingElement.remove();
+        }
+      }
+
+      // Handle Enter key
+      messageInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>
