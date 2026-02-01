@@ -45,7 +45,7 @@ This project is a web-based chatbot interface built with:
 
 Navigate to your project directory:
 ```bash
-cd d:\ironlady tasks\ironlady_customer_chatbot
+cd ironlady_customer_chatbot
 ```
 
 ### Step 2: Set Up Environment Variables
